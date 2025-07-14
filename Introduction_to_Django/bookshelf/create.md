@@ -1,10 +1,7 @@
-# Create a Book Entry
+```python
 from bookshelf.models import Book
 
 Book.objects.create(
-    title="Things Fall Apart",
-    author="Chinua Achebe",
-    published_date="1958-06-17",
-    isbn="9780435905255",
-    price=12.50
+    title="1984",
+    author="George Orwell"
 )
