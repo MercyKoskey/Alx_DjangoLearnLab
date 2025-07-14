@@ -1,7 +1,7 @@
-```python
-from bookshelf.models import Book
+# Create a Book Object
 
-Book.objects.create(
-    title="1984",
-    author="George Orwell"
-)
+To add a new book to the database, use:
+
+```python
+Book.objects.create(title="1984", author="George Orwell")
+
