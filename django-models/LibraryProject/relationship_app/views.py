@@ -29,10 +29,12 @@ def register(request):
     if request.method == "POST":
         form = UserCreationForm(request.POST)
         if form.is_valid():
-            form.save()
-            messages.success(request, "Registration successful! You can now log in.")
-            return redirect("login")
+            user = form.save()
+            login(request, user)  # ✅ Log in the user right after registration
+            messages.success(request, "Registration successful! You are now logged in.")
+            return redirect("list-books")  # Or any other page
     else:
         form = UserCreationForm()
     return render(request, "relationship_app/register.html", {"form": form})
+
 
