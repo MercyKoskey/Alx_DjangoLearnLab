@@ -1,0 +1,1 @@
+This is the LibraryProject created for Django environment setup
