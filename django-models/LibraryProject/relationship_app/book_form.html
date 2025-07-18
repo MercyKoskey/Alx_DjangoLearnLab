@@ -1,0 +1,16 @@
+<!-- relationship_app/templates/relationship_app/book_form.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{% if form.instance.pk %}Edit{% else %}Add{% endif %} Book</title>
+</head>
+<body>
+    <h1>{% if form.instance.pk %}Edit{% else %}Add{% endif %} Book</h1>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">{% if form.instance.pk %}Update{% else %}Add{% endif %}</button>
+    </form>
+    <a href="{% url 'list-books' %}">Back to Book List</a>
+</body>
+</html>
