@@ -1,5 +1,6 @@
+from .models import Book
 from django.contrib.auth.decorators import permission_required
-
+from django.views.generic import ListView
 from django.shortcuts import render
 from django.views.generic.detail import DetailView
 from .models import Library
@@ -11,10 +12,10 @@ def list_books(request):
 
 
 # Class-based view for showing a specific library and its books
-class BookListView(View):
+class BookListView(ListView):
     def get(self, request):
         books = Book.objects.all()
-        return render(request, "relationship_app/list_books.html", {"books": books})
+        return render(request, "relationship_app/library_detail.html", {"books": books})
 
 
     def get_context_data(self, **kwargs):
