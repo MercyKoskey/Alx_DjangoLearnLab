@@ -1,9 +1,9 @@
-# from django.contrib.auth.models import AbstractUser
-# from django.db import models
+from django.contrib.auth.models import AbstractUser
+from django.db import models
 
-# class CustomUser(AbstractUser):
-#     date_of_birth = models.DateField()
-#     profile_photo = models.ImageField()
+class CustomUser(AbstractUser):
+    date_of_birth = models.DateField()
+    profile_photo = models.ImageField()
 
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.db import models
