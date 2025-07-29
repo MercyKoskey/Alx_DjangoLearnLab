@@ -1,5 +1,9 @@
-from .models import Book
 from django.db import models
+from django.contrib.auth import get_user_model
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+
+User = get_user_model()
 
 class Author(models.Model):
     name = models.CharField(max_length=100)
@@ -37,17 +41,6 @@ class Book(models.Model):
             ("can_delete_book", "Can delete a book"),
         ]
 
-
-
-
-
-
-#Task 2
-from django.db import models
-from django.contrib.auth.models import User
-from django.db.models.signals import post_save
-from django.dispatch import receiver
-
 class UserProfile(models.Model):
     ROLE_CHOICES = [
         ('Admin', 'Admin'),
@@ -60,7 +53,6 @@ class UserProfile(models.Model):
     def __str__(self):
         return f"{self.user.username} - {self.role}"
 
-# Automatically create a UserProfile when a new User is created
 @receiver(post_save, sender=User)
 def create_user_profile(sender, instance, created, **kwargs):
     if created:
