@@ -23,7 +23,17 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-w%c=653u#e3gp=2ispn$6uti=m2lrhjd0+xsksb-1cko9i$d5l'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False  # Disable debug mode in production to prevent sensitive info from being shown in error pages.
+
+# Browser protections
+SECURE_BROWSER_XSS_FILTER = True  # Enables the browser’s XSS protection to prevent cross-site scripting attacks.
+SECURE_CONTENT_TYPE_NOSNIFF = True  # Prevents the browser from guessing content types to reduce XSS risk.
+X_FRAME_OPTIONS = 'DENY'  # Prevents your site from being embedded in iframes to protect against clickjacking.
+
+# Secure cookies (only sent over HTTPS)
+CSRF_COOKIE_SECURE = True  # Ensures the CSRF cookie is only sent over HTTPS connections.
+SESSION_COOKIE_SECURE = True  # Ensures the session cookie is only sent over HTTPS connections.
+
 
 ALLOWED_HOSTS = []
 
@@ -39,6 +49,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'bookshelf',
     'relationship_app',
+    'csp',
 ]
 
 # These should go outside the list
@@ -54,7 +65,12 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'csp.middleware.CSPMiddleware',
 ]
+
+CSP_DEFAULT_SRC = ("'self'",)
+CSP_SCRIPT_SRC = ("'self'",)
+CSP_STYLE_SRC = ("'self'",)
 
 ROOT_URLCONF = 'LibraryProject.urls'
 
