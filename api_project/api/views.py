@@ -1,13 +1,13 @@
-from rest_framework import generics, viewsets
-from .models import Book
-from .serializers import BookSerializer
+from rest_framework import viewsets
+from rest_framework.permissions import IsAuthenticated
+from .models import YourModel
+from .serializers import YourModelSerializer
 
-# This view handles GET /books/ — listing all books
-class BookList(generics.ListAPIView):
-    queryset = Book.objects.all()
-    serializer_class = BookSerializer
-
-# This ViewSet handles full CRUD (GET, POST, PUT, DELETE)
-class BookViewSet(viewsets.ModelViewSet):
-    queryset = Book.objects.all()
-    serializer_class = BookSerializer
+class YourModelViewSet(viewsets.ModelViewSet):
+    """
+    A simple ViewSet for viewing and editing YourModel instances.
+    Only accessible to authenticated users.
+    """
+    queryset = YourModel.objects.all()
+    serializer_class = YourModelSerializer
+    permission_classes = [IsAuthenticated]  # Only authenticated users allowed
