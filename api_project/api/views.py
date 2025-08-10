@@ -1,13 +1,14 @@
-from rest_framework import viewsets
-from rest_framework.permissions import IsAuthenticated
-from .models import YourModel
-from .serializers import YourModelSerializer
+from rest_framework import generics, permissions
+from rest_framework.authentication import SessionAuthentication, BasicAuthentication, TokenAuthentication
+from .models import Book
+from .serializers import BookSerializer
 
-class YourModelViewSet(viewsets.ModelViewSet):
-    """
-    A simple ViewSet for viewing and editing YourModel instances.
-    Only accessible to authenticated users.
-    """
-    queryset = YourModel.objects.all()
-    serializer_class = YourModelSerializer
-    permission_classes = [IsAuthenticated]  # Only authenticated users allowed
+class BookList(generics.ListAPIView):
+    queryset = Book.objects.all()
+    serializer_class = BookSerializer
+
+    # Multiple authentication schemes
+    authentication_classes = [SessionAuthentication, BasicAuthentication, TokenAuthentication]
+
+    # Example: allow only authenticated users to access
+    permission_classes = [permissions.IsAuthenticated]
