@@ -1,0 +1,29 @@
+{% extends "blog/base.html" %}
+
+{% block content %}
+  <h2>Search Posts</h2>
+
+  <!-- Search Form -->
+  <form method="get" action="{% url 'search-posts' %}">
+    <input type="text" name="q" placeholder="Search posts..." value="{{ query|default:'' }}" required>
+    <button type="submit">Search</button>
+  </form>
+
+  <hr>
+
+  <!-- Search Results -->
+  {% if posts %}
+    <h3>Results for "{{ query }}"</h3>
+    <ul>
+      {% for post in posts %}
+        <li>
+          <a href="{{ post.get_absolute_url }}">{{ post.title }}</a>
+          <small>by {{ post.author.username }} on {{ post.date_posted|date:"M d, Y" }}</small>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p>No posts found matching "{{ query }}".</p>
+  {% endif %}
+
+{% endblock content %}

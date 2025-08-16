@@ -1,6 +1,8 @@
 from django.db import models
 from django.contrib.auth.models import User
 from django.urls import reverse
+from taggit.managers import TaggableManager
+
 
 # Blog Post model
 class Post(models.Model):
@@ -9,6 +11,9 @@ class Post(models.Model):
     author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='posts')
     date_posted = models.DateTimeField(auto_now_add=True)  # creation timestamp
     updated_at = models.DateTimeField(auto_now=True)       # last update timestamp
+
+    # New field: Tags for categorization
+    tags = TaggableManager(blank=True)
 
     class Meta:
         ordering = ['-date_posted']  # newest first
