@@ -1,4 +1,4 @@
-from django.shortcuts import render, get_object_or_404, redirect
+from django.shortcuts import get_object_or_404, redirect, render
 from django.contrib.auth import login, authenticate, logout
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -7,7 +7,6 @@ from django.views.generic import ListView, DetailView, CreateView, UpdateView, D
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from .models import Post, Comment
 from .forms import RegisterForm, LoginForm, UserUpdateForm, CommentForm
-
 
 # ---------------------------
 # User Views
@@ -24,7 +23,6 @@ def register_view(request):
     else:
         form = RegisterForm()
     return render(request, 'blog/register.html', {'form': form})
-
 
 def login_view(request):
     if request.method == "POST":
@@ -43,12 +41,10 @@ def login_view(request):
         form = LoginForm()
     return render(request, 'blog/login.html', {'form': form})
 
-
 def logout_view(request):
     logout(request)
     messages.info(request, "You have successfully logged out.")
     return redirect('login')
-
 
 @login_required
 def edit_profile(request):
@@ -62,7 +58,6 @@ def edit_profile(request):
         form = UserUpdateForm(instance=request.user)
     return render(request, 'blog/edit_profile.html', {'form': form})
 
-
 # ---------------------------
 # Post Views (CRUD)
 # ---------------------------
@@ -73,7 +68,6 @@ class PostListView(ListView):
     context_object_name = 'posts'
     ordering = ['-date_posted']
 
-
 class PostDetailView(DetailView):
     model = Post
     template_name = 'blog/post_detail.html'
@@ -83,7 +77,6 @@ class PostDetailView(DetailView):
         context['form'] = CommentForm()
         return context
 
-
 class PostCreateView(LoginRequiredMixin, CreateView):
     model = Post
     template_name = 'blog/post_form.html'
@@ -92,7 +85,6 @@ class PostCreateView(LoginRequiredMixin, CreateView):
     def form_valid(self, form):
         form.instance.author = self.request.user
         return super().form_valid(form)
-
 
 class PostUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     model = Post
@@ -107,7 +99,6 @@ class PostUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
         post = self.get_object()
         return self.request.user == post.author
 
-
 class PostDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
     model = Post
     template_name = 'blog/post_confirm_delete.html'
@@ -117,19 +108,37 @@ class PostDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
         post = self.get_object()
         return self.request.user == post.author
 
-
 # ---------------------------
 # Comment Views (CRUD)
 # ---------------------------
 
-@login_required
-def add_comment(request, post_id):
-    post = get_object_or_404(Post, pk=post_id)
-    if request.method == 'POST':
-        form = CommentForm(request.POST)
-        if form.is_valid():
-            comment = form.save(commit=False)
-            comment.post = post
-            comment.author = request.user
-            comment.save()
-            messages.success(request, "Comment added successfully!")
+class CommentCreateView(LoginRequiredMixin, CreateView):
+    model = Comment
+    form_class = CommentForm
+    template_name = 'blog/comment_form.html'
+
+    def form_valid(self, form):
+        post = get_object_or_404(Post, pk=self.kwargs['post_id'])
+        form.instance.author = self.request.user
+        form.instance.post = post
+        return super().form_valid(form)
+
+class CommentUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
+    model = Comment
+    form_class = CommentForm
+    template_name = 'blog/comment_form.html'
+
+    def test_func(self):
+        comment = self.get_object()
+        return self.request.user == comment.author
+
+class CommentDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
+    model = Comment
+    template_name = 'blog/comment_confirm_delete.html'
+
+    def get_success_url(self):
+        return self.object.post.get_absolute_url()
+
+    def test_func(self):
+        comment = self.get_object()
+        return self.request.user == comment.author
