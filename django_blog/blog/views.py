@@ -85,7 +85,9 @@ class PostCreateView(LoginRequiredMixin, CreateView):
 
     def form_valid(self, form):
         form.instance.author = self.request.user
-        return super().form_valid(form)
+        response = super().form_valid(form)
+        form.save_m2m()  # Ensure tags are saved
+        return response
 
 class PostUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     model = Post
@@ -94,7 +96,9 @@ class PostUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
 
     def form_valid(self, form):
         form.instance.author = self.request.user
-        return super().form_valid(form)
+        response = super().form_valid(form)
+        form.save_m2m()  # Ensure tags are updated
+        return response
 
     def test_func(self):
         post = self.get_object()
@@ -149,7 +153,7 @@ class CommentDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
 # ---------------------------
 
 def tagged_posts(request, tag_name):
-    posts = Post.objects.filter(tags__name=tag_name)
+    posts = Post.objects.filter(tags__name__iexact=tag_name)
     return render(request, 'blog/tagged_posts.html', {
         'posts': posts,
         'tag_name': tag_name
@@ -163,7 +167,11 @@ def search_posts(request):
     query = request.GET.get("q")
     results = []
     if query:
-        results = Post.objects.filter(Q(title__icontains=query) | Q(content__icontains=query) | Q(tags__name__icontains=query)).distinct()
+        results = Post.objects.filter(
+            Q(title__icontains=query) |
+            Q(content__icontains=query) |
+            Q(tags__name__icontains=query)
+        ).distinct()
     return render(request, "blog/search_results.html", {
         "query": query,
         "results": results
