@@ -5,20 +5,22 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
 from django.urls import reverse_lazy
-from .forms import RegisterForm, LoginForm, UserUpdateForm
+
 from .models import Post
+from .forms import RegisterForm, LoginForm, UserUpdateForm
 
-
-# ========== AUTH VIEWS ==========
+# ==========================
+# Authentication Views
+# ==========================
 
 def register_view(request):
     if request.method == "POST":
         form = RegisterForm(request.POST)
         if form.is_valid():
             user = form.save()
-            login(request, user)  # auto login after register
+            login(request, user)
             messages.success(request, "Registration successful!")
-            return redirect('home')
+            return redirect('post-list')
     else:
         form = RegisterForm()
     return render(request, 'blog/register.html', {'form': form})
@@ -34,7 +36,7 @@ def login_view(request):
             if user is not None:
                 login(request, user)
                 messages.success(request, f"Welcome back {username}!")
-                return redirect('home')
+                return redirect('post-list')
             else:
                 messages.error(request, "Invalid username or password.")
     else:
@@ -55,26 +57,26 @@ def edit_profile(request):
         if form.is_valid():
             form.save()
             messages.success(request, "Profile updated successfully!")
-            return redirect('home')
+            return redirect('post-list')
     else:
         form = UserUpdateForm(instance=request.user)
-
     return render(request, 'blog/edit_profile.html', {'form': form})
 
 
-# ========== BLOG POST CRUD VIEWS ==========
+# ==========================
+# Blog CRUD Views
+# ==========================
 
 class PostListView(ListView):
     model = Post
     template_name = 'blog/post_list.html'
     context_object_name = 'posts'
-    ordering = ['-created_at']  # latest first
+    ordering = ['-date_posted']
 
 
 class PostDetailView(DetailView):
     model = Post
     template_name = 'blog/post_detail.html'
-    context_object_name = 'post'
 
 
 class PostCreateView(LoginRequiredMixin, CreateView):
@@ -83,7 +85,7 @@ class PostCreateView(LoginRequiredMixin, CreateView):
     template_name = 'blog/post_form.html'
 
     def form_valid(self, form):
-        form.instance.author = self.request.user  # set author automatically
+        form.instance.author = self.request.user
         return super().form_valid(form)
 
 
@@ -97,8 +99,7 @@ class PostUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
         return super().form_valid(form)
 
     def test_func(self):
-        post = self.get_object()
-        return self.request.user == post.author  # only author can edit
+        return self.get_object().author == self.request.user
 
 
 class PostDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
@@ -107,5 +108,4 @@ class PostDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
     success_url = reverse_lazy('post-list')
 
     def test_func(self):
-        post = self.get_object()
-        return self.request.user == post.author  # only author can delete
+        return self.get_object().author == self.request.user
