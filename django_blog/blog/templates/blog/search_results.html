@@ -1,29 +1,27 @@
 {% extends "blog/base.html" %}
 
 {% block content %}
-  <h2>Search Posts</h2>
+  <h2>Search results for "{{ query }}"</h2>
 
-  <!-- Search Form -->
-  <form method="get" action="{% url 'search-posts' %}">
-    <input type="text" name="q" placeholder="Search posts..." value="{{ query|default:'' }}" required>
-    <button type="submit">Search</button>
-  </form>
-
-  <hr>
-
-  <!-- Search Results -->
-  {% if posts %}
-    <h3>Results for "{{ query }}"</h3>
-    <ul>
-      {% for post in posts %}
-        <li>
-          <a href="{{ post.get_absolute_url }}">{{ post.title }}</a>
-          <small>by {{ post.author.username }} on {{ post.date_posted|date:"M d, Y" }}</small>
+  {% if results %}
+    <ul class="list-group">
+      {% for post in results %}
+        <li class="list-group-item">
+          <a href="{% url 'post-detail' post.pk %}">{{ post.title }}</a>
+          <small class="text-muted">by {{ post.author }} on {{ post.date_posted|date:"M d, Y" }}</small>
+          {% if post.tags.exists %}
+            <p>Tags:
+              {% for tag in post.tags.all %}
+                <a href="{% url 'tagged-posts' tag.name %}" class="badge bg-info">{{ tag.name }}</a>
+              {% endfor %}
+            </p>
+          {% endif %}
         </li>
       {% endfor %}
     </ul>
   {% else %}
-    <p>No posts found matching "{{ query }}".</p>
+    <p>No posts match your search query.</p>
   {% endif %}
 
-{% endblock content %}
+  <a href="{% url 'post-list' %}" class="btn btn-secondary mt-3">Back to all posts</a>
+{% endblock %}

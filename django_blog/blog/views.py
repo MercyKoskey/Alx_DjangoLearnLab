@@ -7,6 +7,7 @@ from django.views.generic import ListView, DetailView, CreateView, UpdateView, D
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from .models import Post, Comment
 from .forms import RegisterForm, LoginForm, UserUpdateForm, CommentForm, PostForm
+from django.db.models import Q
 
 # ---------------------------
 # User Views
@@ -162,8 +163,7 @@ def search_posts(request):
     query = request.GET.get("q")
     results = []
     if query:
-        results = Post.objects.filter(title__icontains=query) | Post.objects.filter(content__icontains=query) | Post.objects.filter(tags__name__icontains=query)
-
+        results = Post.objects.filter(Q(title__icontains=query) | Q(content__icontains=query) | Q(tags__name__icontains=query)).distinct()
     return render(request, "blog/search_results.html", {
         "query": query,
         "results": results
