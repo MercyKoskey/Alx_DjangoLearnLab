@@ -6,7 +6,7 @@ from django.urls import reverse_lazy
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from .models import Post, Comment
-from .forms import RegisterForm, LoginForm, UserUpdateForm, CommentForm
+from .forms import RegisterForm, LoginForm, UserUpdateForm, CommentForm, PostForm
 
 # ---------------------------
 # User Views
@@ -79,8 +79,8 @@ class PostDetailView(DetailView):
 
 class PostCreateView(LoginRequiredMixin, CreateView):
     model = Post
+    form_class = PostForm
     template_name = 'blog/post_form.html'
-    fields = ['title', 'content', 'tags']
 
     def form_valid(self, form):
         form.instance.author = self.request.user
@@ -88,8 +88,8 @@ class PostCreateView(LoginRequiredMixin, CreateView):
 
 class PostUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     model = Post
+    form_class = PostForm
     template_name = 'blog/post_form.html'
-    fields = ['title', 'content', 'tags']
 
     def form_valid(self, form):
         form.instance.author = self.request.user
@@ -162,7 +162,7 @@ def search_posts(request):
     query = request.GET.get("q")
     results = []
     if query:
-        results = Post.objects.filter(title__icontains=query) | Post.objects.filter(content__icontains=query)
+        results = Post.objects.filter(title__icontains=query) | Post.objects.filter(content__icontains=query) | Post.objects.filter(tags__name__icontains=query)
 
     return render(request, "blog/search_results.html", {
         "query": query,
