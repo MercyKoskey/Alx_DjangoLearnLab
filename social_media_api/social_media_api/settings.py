@@ -56,8 +56,12 @@ WSGI_APPLICATION = 'social_media_api.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'socialmedia_db',        # your database name
+        'USER': 'db_user',               # database username
+        'PASSWORD': 'db_password',       # database password
+        'HOST': 'localhost',             # or your DB host
+        'PORT': '5432',                  # PostgreSQL default port
     }
 }
 
