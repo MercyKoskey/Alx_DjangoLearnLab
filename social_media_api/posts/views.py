@@ -1,4 +1,4 @@
-from rest_framework import viewsets, permissions, filters
+from rest_framework import viewsets, permissions, filters, generics
 from .models import Post, Comment
 from .serializers import PostSerializer, CommentSerializer
 from rest_framework.response import Response
@@ -37,7 +37,7 @@ class CommentViewSet(viewsets.ModelViewSet):
 
 
 
-class FeedView(APIView):
+class FeedView(generics.ListAPIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):

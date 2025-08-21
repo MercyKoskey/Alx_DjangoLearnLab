@@ -1,18 +1,20 @@
-from rest_framework import generics, permissions
+from rest_framework import generics, permissions, status
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.authtoken.models import Token
 from rest_framework.response import Response
+from django.shortcuts import get_object_or_404
 from django.contrib.auth import get_user_model
 from .serializers import RegisterSerializer, UserSerializer
-from rest_framework import status, views
-from django.shortcuts import get_object_or_404
 
 User = get_user_model()
+
+# ------------------- Authentication Views -------------------
 
 class RegisterView(generics.CreateAPIView):
     queryset = User.objects.all()
     serializer_class = RegisterSerializer
     permission_classes = [permissions.AllowAny]
+
 
 class LoginView(ObtainAuthToken):
     def post(self, request, *args, **kwargs):
@@ -20,6 +22,7 @@ class LoginView(ObtainAuthToken):
         token = Token.objects.get(key=response.data['token'])
         user_data = UserSerializer(token.user).data
         return Response({'token': token.key, 'user': user_data})
+
 
 class MeView(generics.RetrieveAPIView):
     serializer_class = UserSerializer
@@ -29,7 +32,10 @@ class MeView(generics.RetrieveAPIView):
         return self.request.user
 
 
-class FollowUserView(views.APIView):
+# ------------------- Follow/Unfollow Views -------------------
+
+class FollowUserView(generics.GenericAPIView):
+    queryset = User.objects.all()
     permission_classes = [permissions.IsAuthenticated]
 
     def post(self, request, user_id):
@@ -42,7 +48,8 @@ class FollowUserView(views.APIView):
         return Response({"detail": f"You are now following {target_user.username}."}, status=status.HTTP_200_OK)
 
 
-class UnfollowUserView(views.APIView):
+class UnfollowUserView(generics.GenericAPIView):
+    queryset = User.objects.all()
     permission_classes = [permissions.IsAuthenticated]
 
     def post(self, request, user_id):
@@ -53,4 +60,3 @@ class UnfollowUserView(views.APIView):
 
         request.user.following.remove(target_user)
         return Response({"detail": f"You have unfollowed {target_user.username}."}, status=status.HTTP_200_OK)
-
