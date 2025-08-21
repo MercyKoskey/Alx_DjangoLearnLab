@@ -1,8 +1,10 @@
-from rest_framework.test import APITestCase
+from rest_framework.test import APITestCase, APIClient
 from rest_framework import status
 from django.contrib.auth import get_user_model
 from rest_framework.authtoken.models import Token
-from .models import Post, Comment
+from .models import Post, Comment, Like
+from notifications.models import Notification
+from django.urls import reverse
 
 User = get_user_model()
 
@@ -72,6 +74,66 @@ class PostCommentAPITests(APITestCase):
         data = {"post": post.id, "content": "Trying to edit someone else's comment"}
         response = self.client.put(f"/comments/{comment.id}/", data, **self.auth_headers_user2)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
-from django.test import TestCase
+
+
+class LikeNotificationTestCase(APITestCase):
+    def setUp(self):
+        # Create two users
+        self.user1 = User.objects.create_user(username="user1", email="user1@example.com", password="pass1234")
+        self.user2 = User.objects.create_user(username="user2", email="user2@example.com", password="pass1234")
+
+        # Create a post by user2
+        self.post = Post.objects.create(author=self.user2, title="Test Post", content="Test Content")
+
+        # API client for user1
+        self.client1 = APIClient()
+        # Authenticate user1
+        self.client1.force_authenticate(user=self.user1)
+
+        # API client for user2
+        self.client2 = APIClient()
+        self.client2.force_authenticate(user=self.user2)
+
+    def test_like_post_creates_notification(self):
+        url = reverse('like-post', kwargs={'pk': self.post.id})
+        response = self.client1.post(url)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        # Check that the Like object was created
+        self.assertTrue(Like.objects.filter(user=self.user1, post=self.post).exists())
+        # Check that a notification was created for user2
+        self.assertTrue(Notification.objects.filter(recipient=self.user2, actor=self.user1, verb="liked").exists())
+
+    def test_cannot_like_post_twice(self):
+        url = reverse('like-post', kwargs={'pk': self.post.id})
+        # First like
+        self.client1.post(url)
+        # Second like should fail
+        response = self.client1.post(url)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_unlike_post_removes_like(self):
+        # Like first
+        Like.objects.create(user=self.user1, post=self.post)
+        url = reverse('unlike-post', kwargs={'pk': self.post.id})
+        response = self.client1.post(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertFalse(Like.objects.filter(user=self.user1, post=self.post).exists())
+
+    def test_unlike_post_without_like(self):
+        url = reverse('unlike-post', kwargs={'pk': self.post.id})
+        response = self.client1.post(url)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_notifications_list(self):
+        # Like post to generate notification
+        self.client1.post(reverse('like-post', kwargs={'pk': self.post.id}))
+        # Get notifications for user2
+        self.client2.force_authenticate(user=self.user2)
+        response = self.client2.get(reverse('notifications'))
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        # Should contain at least one notification
+        self.assertTrue(len(response.data) >= 1)
+        self.assertEqual(response.data[0]['actor_username'], self.user1.username)
+        self.assertEqual(response.data[0]['verb'], 'liked')
 
 # Create your tests here.
