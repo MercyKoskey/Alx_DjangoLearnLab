@@ -3,8 +3,8 @@ from pathlib import Path
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = 'django-insecure-*hz)ct6djy=5z1@4_pjnmb=-lyv24^vi&462dfs0r#iteyv3uu'
-DEBUG = True
-ALLOWED_HOSTS = []
+DEBUG = False
+ALLOWED_HOSTS = ['yourdomain.com']  # replace with your production domain(s)
 
 INSTALLED_APPS = [
     # Django apps
@@ -92,12 +92,34 @@ REST_FRAMEWORK = {
     ],
 
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
-    'PAGE_SIZE': 5,   # adjust page size as needed
+    'PAGE_SIZE': 5,
     'DEFAULT_FILTER_BACKENDS': [
         'rest_framework.filters.SearchFilter',
         'rest_framework.filters.OrderingFilter',
     ],
 }
 
-
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# ------------------- Security Settings -------------------
+
+# XSS protection
+SECURE_BROWSER_XSS_FILTER = True
+
+# Clickjacking protection
+X_FRAME_OPTIONS = 'DENY'
+
+# Content type sniffing protection
+SECURE_CONTENT_TYPE_NOSNIFF = True
+
+# Enforce HTTPS
+SECURE_SSL_REDIRECT = True
+
+# Cookies only sent over HTTPS
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
+
+# HTTP Strict Transport Security (HSTS)
+SECURE_HSTS_SECONDS = 3600  # Increase in production (e.g., 31536000)
+SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+SECURE_HSTS_PRELOAD = True
